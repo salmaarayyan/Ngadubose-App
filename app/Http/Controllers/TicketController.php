@@ -7,28 +7,21 @@ use App\Models\Ticket;
 use App\Models\TicketProgress;
 use App\Models\User;
 use App\Services\WhatsAppService;
+use App\Services\GoogleDriveService;
+use App\Enums\StatusLaporan;
+use App\Enums\SystemConfig;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class TicketController extends Controller
 {
     protected $whatsAppService;
+    protected $googleDriveService;
 
-    public function __construct(WhatsAppService $whatsAppService)
+    public function __construct(WhatsAppService $whatsAppService, GoogleDriveService $googleDriveService)
     {
         $this->whatsAppService = $whatsAppService;
-    }
-
-    public function index()
-    {
-        $totalLaporan = Ticket::count();
-        
-        $laporanSelesai = TicketProgress::where('status', 'Selesai')->count();
-        $laporanProses = TicketProgress::whereIn('status', ['Diverifikasi', 'Diproses'])->count();
-        
-        $persenSelesai = $totalLaporan > 0 ? round(($laporanSelesai / $totalLaporan) * 100) : 0;
-
-        return view('home', compact('totalLaporan', 'laporanSelesai', 'laporanProses', 'persenSelesai'));
+        $this->googleDriveService = $googleDriveService;
     }
 
     public function storeReport(Request $request)
@@ -45,22 +38,22 @@ class TicketController extends Controller
 
         $tahun = date('Y');
         do {
-            $ticketCode = 'WBS-' . $tahun . '-' . strtoupper(Str::random(5));
+            $ticketCode = SystemConfig::TICKET_PREFIX->value . '-' . $tahun . '-' . strtoupper(Str::random(5));
         } while (Ticket::where('ticket_code', $ticketCode)->exists());
 
         $pathBukti = null;
         if ($request->hasFile('bukti_pelaporan')) {
-            $paths = [];
-            foreach ($request->file('bukti_pelaporan') as $file) {
-                $paths[] = $file->store('bukti_pelaporan', 'public');
-            }
-            $pathBukti = json_encode($paths); 
+            $uploadedPaths = $this->googleDriveService->uploadMultipleFiles(
+                $request->file('bukti_pelaporan'), 
+                SystemConfig::DRIVE_FOLDER->value
+            );
+            $pathBukti = json_encode($uploadedPaths); 
         }
 
         $ticket = Ticket::create([
             'ticket_code' => $ticketCode,
             'klasifikasi' => $request->klasifikasi,
-            'nama_pelapor' => $request->nama_pelapor ?? 'Anonim', 
+            'nama_pelapor' => $request->nama_pelapor ?? SystemConfig::DEFAULT_PELAPOR->value, 
             'jenis_pengaduan' => $request->jenis_pengaduan,
             'uraian_kronologi' => $request->uraian_kronologi,
             'nama_terlapor' => $request->nama_terlapor,
@@ -70,18 +63,19 @@ class TicketController extends Controller
 
         TicketProgress::create([
             'ticket_id' => $ticket->id,
-            'status' => 'Diterima',
+            'status' => StatusLaporan::DITERIMA->value,
             'catatan_admin' => 'Laporan telah berhasil masuk ke sistem WBS BPS Kabupaten Bantul dan menunggu verifikasi tim pengawas.',
         ]);
 
+
         try {
             $pesan_notifikasi = "🚨 *LAPORAN WBS BARU MASUK* 🚨\n\n"
-                              . "Halo Admin NGADUBOSE, ada laporan pengaduan baru masuk dari Masyarakat (Publik).\n\n"
-                              . "▪️️ *Kode Tiket:* " . $ticketCode . "\n"
-                              . "▪️ *Klasifikasi:* " . $request->klasifikasi . "\n"
-                              . "▪️ *Jenis Pengaduan:* " . ucfirst(str_replace('_', ' ', $request->jenis_pengaduan)) . "\n"
-                              . "▪️ *Tanggal Kejadian:* " . $request->tanggal_kejadian . "\n\n"
-                              . "Silakan segera login ke Panel Dashboard Admin BPS Bantul untuk memeriksa berkas laporan. Terima kasih.";
+                            . "Halo Admin NGADUBOSE, ada laporan pengaduan baru masuk dari Masyarakat (Publik).\n\n"
+                            . "▪ *Kode Tiket:* " . $ticketCode . "\n"
+                            . "▪️ *Klasifikasi:* " . $request->klasifikasi . "\n"
+                            . "▪️ *Jenis Pengaduan:* " . ucfirst(str_replace('_', ' ', $request->jenis_pengaduan)) . "\n"
+                            . "▪️ *Tanggal Kejadian:* " . $request->tanggal_kejadian . "\n\n"
+                            . "Silakan segera login ke Panel Dashboard Admin BPS Bantul untuk memeriksa berkas laporan. Terima kasih.";
 
             $admins = User::where('is_admin', 1)
                           ->whereNotNull('nomor_hp')
