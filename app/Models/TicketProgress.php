@@ -2,24 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TicketProgress extends Model
 {
-    use HasFactory;
-    
     protected $table = 'ticket_progress';
 
     protected $fillable = [
-        'ticket_id',
-        'user_id',
+        'id_ticket',
+        'id_user',
         'status',
         'catatan_admin',
     ];
 
-    public function ticket()
+    public function ticket(): BelongsTo
     {
-        return $this->belongsTo(Ticket::class, 'ticket_id');
+        return $this->belongsTo(Ticket::class, 'id_ticket');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'id_user');
     }
 }
