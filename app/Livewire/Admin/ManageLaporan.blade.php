@@ -49,7 +49,7 @@ class ManageTicket extends Component
             ->latest()
             ->paginate(10);
 
-        return view('livewire.admin.manage-ticket', [
+        return view('livewire.admin.manage-laporan', [
             'tickets' => $tickets,
             'statusOptions' => StatusLaporan::cases(),
         ])->layout('layouts.admin');
