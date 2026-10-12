@@ -5,14 +5,25 @@ namespace App\Http\Livewire\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Url; 
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class ManageUser extends Component
 {
-    public $userId, $nama, $email, $nomor_hp, $password;
+    use WithPagination;
 
+    public $userId, $nama, $email, $nomor_hp, $password;
     public $isOpen = false;
     public $isEditMode = false;
+
+    #[Url(except: '')]
+    public $search = '';
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
 
     public function rules()
     {
@@ -42,8 +53,16 @@ class ManageUser extends Component
 
     public function render()
     {
+        $users = User::query()
+            ->when($this->search, function ($query) {
+                $query->where('nama', 'like', '%' . $this->search . '%')
+                      ->orWhere('email', 'like', '%' . $this->search . '%');
+            })
+            ->latest()
+            ->paginate(10);
+
         return view('livewire.admin.manage-user', [
-            'users' => User::latest()->get()
+            'users' => $users
         ])->layout('layouts.admin');
     }
 
@@ -58,7 +77,7 @@ class ManageUser extends Component
     {
         $user = User::findOrFail($id);
         $this->userId = $user->id;
-        $this->nama = $user->nama; 
+        $this->nama = $user->nama;
         $this->email = $user->email;
         $this->nomor_hp = $user->nomor_hp;
         $this->password = '';
