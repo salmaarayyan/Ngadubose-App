@@ -2,34 +2,40 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ticket extends Model
 {
-    use HasFactory;
+    use SoftDeletes;
+
+    protected $table = 'tickets';
+
     protected $fillable = [
         'ticket_code',
-        'nama_pelapor',
-        'status',
-        'jenis_pengaduan',
-        'uraian_kronologi',
         'klasifikasi',
-        'tanggal_kejadian',
-        'bukti_pelaporan',
         'judul_laporan',
-    ];
-     protected $casts = [
-        'bukti_pelaporan' => 'array',
-        'tanggal_kejadian' => 'date',
+        'nama_pelapor',
+        'jenis_pengaduan',
+        'uraian',
+        'nama_terlapor',
+        'tanggal_kejadian',
+        'bukti_laporan',
+        'status',
     ];
 
-    public function progress()
+    protected function casts(): array
     {
-        return $this->hasMany(TicketProgress::class, 'ticket_id');
+        return [
+            'tanggal_kejadian' => 'date',
+            // Disimpan sebagai JSON array berisi ID file Google Drive.
+            'bukti_laporan' => 'array',
+        ];
     }
-    public function latestProgress()
+
+    public function ticketProgress(): HasMany
     {
-        return $this->hasOne(TicketProgress::class, 'ticket_id')->latestOfMany();
+        return $this->hasMany(TicketProgress::class, 'id_ticket');
     }
 }
