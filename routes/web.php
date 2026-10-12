@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use \App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\TicketController;
 use App\Livewire\Home;
 use App\Livewire\Admin\ManageLaporan;
@@ -20,16 +21,19 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.logout')->middleware('auth');
 
-Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])
+Route::middleware(['auth', AdminMiddleware::class])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        
-        Route::get('/dashboard', DashboardIndex::class)->name('dashboard');
 
-        Route::get('/manage-user', ManageUser::class)->name('manage-user');
+        Route::livewire('/dashboard', DashboardIndex::class)
+            ->name('dashboard');
 
-        Route::get('/manage-laporan', ManageLaporan::class)->name('manage-laporan');
+        Route::livewire('/manage-user', ManageUser::class)
+            ->name('manage-user');
 
-});
+        Route::livewire('/manage-laporan', ManageLaporan::class)
+            ->name('manage-laporan');
+    });
+
 
