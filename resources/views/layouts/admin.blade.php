@@ -49,7 +49,7 @@
                             </div>
                             
                             <div class="w-9 h-9 rounded-full bg-[#002B5B] text-white flex items-center justify-center font-bold text-sm shadow-sm">
-                                {{ strtoupper(substr(Auth::user()->name, 0, 1)):'AD' }}
+                                {{ strtoupper(substr(Auth::user()->name ?? 'AD', 0, 1)) }}
                             </div>
                             
                             <i class="fas fa-chevron-down text-xs text-slate-400 transition-transform duration-200" :class="profileOpen ? 'rotate-180' : ''"></i>
@@ -88,6 +88,7 @@
             </header>
 
             <div class="flex-1 p-4 md:p-6 lg:p-8">
+                {{ $slot ?? '' }}
                 @yield('content')
             </div>
 

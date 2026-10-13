@@ -23,9 +23,9 @@
                 <span>Dashboard Home</span>
             </a>
 
-            <a href="{{ url('/admin/pengaduan') }}" 
+            <a href="{{ url('/admin/manage-laporan') }}" 
                class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition group 
-                      {{ Request::is('admin/pengaduan') ? 'bg-blue-900 text-white shadow-lg shadow-blue-950/50' : 'text-blue-100 hover:bg-white/5 hover:text-white' }}">
+                      {{ Request::is('admin/manage-laporan') ? 'bg-blue-900 text-white shadow-lg shadow-blue-950/50' : 'text-blue-100 hover:bg-white/5 hover:text-white' }}">
                 <i class="fas fa-ticket-alt text-base transition group-hover:scale-110 {{ Request::is('admin/pengaduan') ? 'text-blue-300' : 'text-blue-400' }}"></i>
                 <span>Laporan / Tiket User</span>
             </a>

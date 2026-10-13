@@ -6,7 +6,6 @@
         .caret { animation: caret-blink 1s steps(1) infinite; }
         @keyframes caret-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 
-        /* ===== Section Nilai-Nilai (glassmorphism) ===== */
         .nilai-card {
             --accent: #60A5FA;
             border: 1px solid rgba(255, 255, 255, 0.25);
@@ -102,7 +101,6 @@
                 untuk melaporkan dugaan pelanggaran, gratifikasi, atau pelayanan buruk dari pegawai BPS Bantul.
             </p>
 
-            {{-- Kedua tombol membuka halaman berikutnya --}}
             <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <a href="{{ url('/form-lapor') }}"
                    class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-bps-navy px-8 py-4 font-semibold text-white shadow-md transition hover:bg-bps-blue focus:outline-none focus-visible:ring-4 focus-visible:ring-bps-blue/40 sm:w-auto">
