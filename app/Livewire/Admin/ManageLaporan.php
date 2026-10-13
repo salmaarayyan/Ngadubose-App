@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire\Admin;
+namespace App\Livewire\Admin;
 
 use App\Models\Ticket;
 use App\Models\TicketProgress;
@@ -9,7 +9,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-class ManageTicket extends Component
+class ManageLaporan extends Component
 {
     use WithPagination;
 

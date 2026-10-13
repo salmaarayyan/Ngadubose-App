@@ -5,7 +5,7 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use App\Models\Ticket;
 use App\Enums\StatusLaporan;
-use App\Enums\JenisTicket;
+use App\Enums\JenisPengaduan;
 
 class DashboardIndex extends Component
 {
@@ -18,11 +18,11 @@ class DashboardIndex extends Component
             'statusDiproses' => Ticket::where('status', StatusLaporan::DIPROSES)->count(),
             'statusSelesai' => Ticket::where('status', StatusLaporan::SELESAI)->count(),
 
-            'gratifikasi' => Ticket::where('jenis_pengaduan', JenisTicket::GRATIFIKASI)->count(),
-            'benturanKepentingan' => Ticket::where('jenis_pengaduan', JenisTicket::BENTURAN_KEPENTINGAN)->count(),
-            'korupsi' => Ticket::where('jenis_pengaduan', JenisPengaduni::KORUPSI ?? JenisTicket::KORUPSI)->count(),
-            'pelanggaranAturan' => Ticket::where('jenis_pengaduan', JenisTicket::PELANGGARAN_ATURAN)->count(),
-            'lainnya' => Ticket::where('jenis_pengaduan', JenisTicket::LAINNYA)->count(),
+            'gratifikasi' => Ticket::where('jenis_pengaduan', JenisPengaduan::GRATIFIKASI)->count(),
+            'benturanKepentingan' => Ticket::where('jenis_pengaduan', JenisPengaduan::BENTURAN_KEPENTINGAN)->count(),
+            'korupsi' => Ticket::where('jenis_pengaduan', JenisPengaduan::KORUPSI)->count(),
+            'pelanggaranAturan' => Ticket::where('jenis_pengaduan', JenisPengaduan::PELANGGARAN_ATURAN)->count(),
+            'lainnya' => Ticket::where('jenis_pengaduan', JenisPengaduan::LAINNYA)->count(),
         ])->layout('layouts.admin');
     }
 }
