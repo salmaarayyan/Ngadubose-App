@@ -8,7 +8,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/admin-charts.js'])
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased">
     <div x-data="{ isOpen: true }" class="flex min-h-screen overflow-x-hidden">
@@ -95,6 +94,7 @@
         </main>
     </div>
     @stack('scripts')
+    @livewireScripts
 </body>
 </html>
 
