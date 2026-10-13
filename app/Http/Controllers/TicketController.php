@@ -96,7 +96,7 @@ class TicketController extends Controller
     public function sukses()
     {
         if (!session('kode_tiket')) {
-            return redirect('/form-lapor'); 
+            return view('public.form-lapor'); 
         }
 
         return view('public.sukses-lapor');
