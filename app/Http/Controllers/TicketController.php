@@ -99,7 +99,7 @@ class TicketController extends Controller
             return redirect('/form-lapor'); 
         }
 
-        return view('sukses-lapor');
+        return view('public.sukses-lapor');
     }
 
     public function lacakStatus(Request $request)
@@ -107,7 +107,7 @@ class TicketController extends Controller
         $ticketCode = $request->input('kode_tiket');
 
         if (!$ticketCode) {
-            return view('lacak-status');
+            return view('public.lacak-status');
         }
 
         $ticket = Ticket::with(['progress' => function($query) {
@@ -115,13 +115,13 @@ class TicketController extends Controller
         }])->where('ticket_code', $ticketCode)->first();
 
         if (!$ticket) {
-            return view('lacak-status', [
+            return view('public.lacak-status', [
                 'ticketCode' => $ticketCode,
                 'error' => 'Kode tiket yang Anda masukkan salah atau tidak terdaftar. Silakan coba lagi.'
             ]);
         }
 
-        return view('lacak-status', [
+        return view('public.lacak-status', [
             'ticketCode' => $ticketCode,
             'ticket' => $ticket
         ]);
