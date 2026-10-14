@@ -26,12 +26,12 @@
 
             {{-- Nomor Halaman & Ellipsis Logic --}}
             @foreach ($elements as $element)
-                {-- "Three Dots" Separator --}
+                {{-- "Three Dots" Separator --}}
                 @if (is_string($element))
                     <span class="px-3 py-2 text-xs text-slate-400 font-medium">{{ $element }}</span>
                 @endif
 
-                {-- Array Of Links --}
+                {{-- Array Of Links --}}
                 @if (is_array($element))
                     @foreach ($element as $page => $url)
                         @if ($page == $paginator->currentPage())

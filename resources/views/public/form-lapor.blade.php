@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-[#F0F7FF] text-slate-800 font-sans min-h-screen flex flex-col justify-between">
+<body class="bg-[#F0F7FF] text-slate-800 font-sans min-h-screen flex flex-col">
 
     @include('components.navbar')
 
@@ -31,7 +31,7 @@
             <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl text-red-800 text-sm font-medium shadow-sm">
                 <p class="font-bold">Terjadi Kesalahan Validasi!</p>
                 <ul class="list-disc list-inside text-xs mt-1 text-red-700">
-                    @foreach ($errors->all() as$error)
+                    @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
@@ -74,6 +74,13 @@
                             </div>
                         </label>
                     </div>
+                </div>
+
+                <!-- Input Judul Laporan Dipindah Keluar dari Grid Klasifikasi Agar Rapi -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Judul Laporan / Ringkasan Masalah <span class="text-red-500">*</span></label>
+                    <input type="text" name="judul_laporan" value="{{ old('judul_laporan') }}" required placeholder="Contoh: Dugaan penyimpangan anggaran atau saran fasilitas" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B]">
+                    <span class="text-[11px] text-gray-400 mt-1 block">Tuliskan judul atau inti ringkasan laporan Anda secara singkat.</span>
                 </div>
 
                 <hr class="border-slate-100">

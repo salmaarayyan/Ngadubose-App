@@ -63,18 +63,16 @@
                                     {{ str_replace('_', ' ', $ticket->jenis_pengaduan) }}
                                 </span>
                             </td>
+                            <!-- Dropdown Status di Tabel -->
                             <td class="py-4 px-6">
-                                @php
-                                    $statusColors = [
-                                        'Diterima' => 'bg-blue-50 text-blue-700 border-blue-200',
-                                        'Diverifikasi' => 'bg-amber-50 text-amber-700 border-amber-200',
-                                        'Diproses' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
-                                        'Selesai' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                    ];
-                                @endphp
-                                <span class="px-2.5 py-1 border rounded-full text-[10px] font-bold uppercase tracking-wider {{ $statusColors[$ticket->status] ?? 'bg-slate-50 text-slate-600' }}">
-                                    {{ $ticket->status }}
-                                </span>
+                                <select wire:change="openStatusModal({{ $ticket->id }}, $event.target.value)" 
+                                        class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1.5 border rounded-xl bg-slate-50 border-slate-200 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#002B5B]">
+                                    @foreach(\App\Enums\StatusLaporan::cases() as $stEnum)
+                                        <option value="{{ $stEnum->value }}" {{ $ticket->status === $stEnum->value ? 'selected' : '' }}>
+                                            {{ $stEnum->value }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </td>
                             <td class="py-4 px-6 text-center">
                                 <div class="flex items-center justify-center gap-2">
@@ -104,6 +102,7 @@
         </div>
     </div>
 
+    <!-- MODAL DETAIL LAPORAN (Termasuk Gambar Bukti) -->
     @if($isDetailOpen && $selectedTicket)
         <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
@@ -148,21 +147,23 @@
                     </div>
 
                     <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Uraian / Kronologi</span>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Uraian / Keluhan</span>
                         <div class="bg-slate-50 p-3 rounded-xl whitespace-pre-line leading-relaxed">{{ $selectedTicket->uraian }}</div>
                     </div>
 
-                    <div class="pt-2 border-t border-slate-100">
-                        <label class="block text-xs font-bold text-slate-700 mb-2">Ubah Status Laporan:</label>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach(\App\Enums\StatusLaporan::cases() as $stEnum)
-                                <button type="button" 
-                                        wire:click="updateStatus({{ $selectedTicket->id }}, '{{ $stEnum->value }}')"
-                                        class="px-3 py-1.5 rounded-xl font-bold uppercase text-[10px] transition cursor-pointer border {{ $selectedTicket->status === $stEnum->value ? 'bg-[#002B5B] text-white border-[#002B5B]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100' }}">
-                                    {{ $stEnum->value }}
-                                </button>
-                            @endforeach
-                        </div>
+                    <!-- Menampilkan Gambar Bukti Laporan -->
+                    <div>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bukti Laporan (Gambar)</span>
+                        @if($selectedTicket->bukti_laporan)
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <a href="{{ asset('storage/' . $selectedTicket->bukti_laporan) }}" target="_blank" class="block">
+                                    <img src="{{ asset('storage/' . $selectedTicket->bukti_laporan) }}" alt="Bukti Laporan" class="w-full max-h-60 object-cover rounded-lg hover:opacity-90 transition">
+                                </a>
+                                <span class="text-[10px] text-slate-400 mt-1 block">Klik gambar untuk memperbesar</span>
+                            </div>
+                        @else
+                            <div class="bg-slate-50 p-3 rounded-xl text-slate-400 italic">Tidak ada lampiran gambar bukti.</div>
+                        @endif
                     </div>
 
                 </div>
@@ -173,6 +174,34 @@
                     </button>
                 </div>
 
+            </div>
+        </div>
+    @endif
+
+    <!-- MODAL POPUP UNTUK MENGIRIM CATATAN ADMIN (SAAT UBAH STATUS) -->
+    @if($isStatusModalOpen)
+        <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <h3 class="text-sm font-black text-slate-800">Kirim Catatan Admin</h3>
+                    <button wire:click="$set('isStatusModalOpen', false)" class="text-slate-400 hover:text-slate-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <p class="text-xs text-slate-500">
+                        Anda akan mengubah status laporan ke: <strong class="text-[#002B5B] uppercase">{{ $newStatus }}</strong>. Silakan masukkan catatan atau instruksi untuk progres tiket ini.
+                    </p>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Catatan Admin</label>
+                        <textarea wire:model="catatanAdmin" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-1 focus:ring-[#002B5B]" placeholder="Tuliskan catatan progres penanganan..."></textarea>
+                        @error('catatanAdmin') <span class="text-red-500 text-[10px] mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
+                    <button type="button" wire:click="$set('isStatusModalOpen', false)" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-bold rounded-xl">Batal</button>
+                    <button type="button" wire:click="saveStatusProgress" class="px-4 py-2 bg-[#002B5B] text-white text-xs font-bold rounded-xl hover:bg-opacity-90">Simpan Perubahan</button>
+                </div>
             </div>
         </div>
     @endif
