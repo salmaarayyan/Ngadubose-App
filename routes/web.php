@@ -8,6 +8,17 @@ use App\Livewire\Home;
 use App\Livewire\Admin\DashboardIndex;
 use App\Livewire\Admin\ManageUser;
 use App\Livewire\Admin\ManageLaporan;
+use App\Http\Controllers\GoogleDriveController;
+
+Route::get('/google-drive/connect', [
+    GoogleDriveController::class,
+    'redirectToGoogle',
+])->name('google-drive.connect');
+
+Route::get('/google-drive/callback', [
+    GoogleDriveController::class,
+    'callback',
+])->name('google-drive.callback');
 
 Route::get('/', Home::class)->name('home');
 Route::get('/form-lapor', [TicketController::class, 'create'])->name('laporan.form'); 

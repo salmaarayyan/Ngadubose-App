@@ -2,25 +2,28 @@
 
 namespace App\Http\Livewire\Admin;
 
-use App\Models\Ticket;
-use App\Models\TicketProgress;
-use App\Enums\StatusLaporan;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Models\Ticket;
+use App\Models\TicketProgress;
+use Illuminate\Support\Facades\Auth;
 
 class ManageTicket extends Component
 {
     use WithPagination;
 
-    #[Url(except: '')]
     public $search = '';
-
-    #[Url(except: '')]
     public $statusFilter = '';
-
-    public $selectedTicket = null;
+    
+    // Properti untuk Modal Detail Laporan
     public $isDetailOpen = false;
+    public $selectedTicket = null;
+
+    // Properti untuk Modal Status & Catatan Admin
+    public $isStatusModalOpen = false;
+    public $statusTicketId = null;
+    public $newStatus = null;
+    public $catatanAdmin = '';
 
     public function updatingSearch()
     {
@@ -32,16 +35,64 @@ class ManageTicket extends Component
         $this->resetPage();
     }
 
+    // Fungsi menampilkan modal detail laporan
+    public function showDetail($ticketId)
+    {
+        $this->selectedTicket = Ticket::findOrFail($ticketId);
+        $this->isDetailOpen = true;
+    }
+
+    // Fungsi menutup modal detail laporan
+    public function closeDetail()
+    {
+        $this->isDetailOpen = false;
+        $this->selectedTicket = null;
+    }
+
+    // Fungsi untuk membuka modal catatan admin saat dropdown status diubah
+    public function openStatusModal($ticketId, $status)
+    {
+        $this->statusTicketId = $ticketId;
+        $this->newStatus = $status;
+        $this->catatanAdmin = '';
+        $this->isStatusModalOpen = true;
+    }
+
+    // Fungsi untuk menyimpan perubahan status dan catatan admin ke database
+    public function saveStatusProgress()
+    {
+        $this->validate([
+            'catatanAdmin' => 'required|string|min:3',
+        ], [
+            'catatanAdmin.required' => 'Catatan admin wajib diisi.',
+            'catatanAdmin.min' => 'Catatan admin minimal 3 karakter.',
+        ]);
+
+        // 1. Update status di tabel utama tickets
+        $ticket = Ticket::findOrFail($this->statusTicketId);
+        $ticket->update([
+            'status' => $this->newStatus
+        ]);
+
+        // 2. Simpan riwayat ke tabel ticket_progres
+        TicketProgress::create([
+            'id_ticket' => $ticket->id,
+            'id_user' => Auth::id(), // Admin yang sedang login
+            'status' => $this->newStatus,
+            'catatan_admin' => $this->catatanAdmin,
+        ]);
+
+        $this->isStatusModalOpen = false;
+        session()->flash('success', 'Status laporan dan catatan admin berhasil diperbarui.');
+    }
+
     public function render()
     {
         $tickets = Ticket::query()
             ->when($this->search, function ($query) {
-                $query->where(function ($q) {
-                    $q->where('ticket_code', 'like', '%' . $this->search . '%')
+                $query->where('ticket_code', 'like', '%' . $this->search . '%')
                       ->orWhere('judul_laporan', 'like', '%' . $this->search . '%')
-                      ->orWhere('nama_pelapor', 'like', '%' . $this->search . '%')
-                      ->orWhere('nama_terlapor', 'like', '%' . $this->search . '%');
-                });
+                      ->orWhere('nama_pelapor', 'like', '%' . $this->search . '%');
             })
             ->when($this->statusFilter, function ($query) {
                 $query->where('status', $this->statusFilter);
@@ -50,42 +101,7 @@ class ManageTicket extends Component
             ->paginate(10);
 
         return view('livewire.admin.manage-laporan', [
-            'tickets' => $tickets,
-            'statusOptions' => StatusLaporan::cases(),
+            'tickets' => $tickets
         ])->layout('layouts.admin');
-    }
-
-    public function showDetail($id)
-    {
-        $this->selectedTicket = Ticket::with('progress')->findOrFail($id);
-        $this->isDetailOpen = true;
-    }
-
-    public function closeDetail()
-    {
-        $this->isDetailOpen = false;
-        $this->selectedTicket = null;
-    }
-
-    public function updateStatus($id, string $newStatusValue)
-    {
-        $ticket = Ticket::findOrFail($id);
-        
-        $statusEnum = StatusLaporan::tryFrom($newStatusValue);
-        if (!$statusEnum) {
-            return;
-        }
-
-        $ticket->update(['status' => $statusEnum->value]);
-
-        TicketProgress::create([
-            'ticket_id' => $ticket->id,
-            'status' => $statusEnum->value,
-            'catatan_admin' => 'Status laporan berhasil diperbarui oleh admin menjadi: ' . $statusEnum->value,
-        ]);
-
-        $this->selectedTicket = Ticket::with('progress')->findOrFail($id);
-
-        session()->flash('success', 'Status tiket ' . $ticket->ticket_code . ' berhasil diperbarui!');
     }
 }

@@ -18,6 +18,11 @@ return [
         'token' => env('FONNTE_TOKEN'),
         'url' => env('FONNTE_URL'),
     ],
+    
+    'google_drive' => [
+        'client_id' => env('GOOGLE_DRIVE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
+    ],
 
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
