@@ -4,8 +4,8 @@ namespace App\Enums;
 
 enum StatusLaporan: string
 {
-    case DITERIMA = 'Diterima';
-    case DIVERIFIKASI = 'Diverifikasi';
-    case DIPROSES = 'Diproses';
-    case SELESAI = 'Selesai';
+    case DITERIMA = 'diterima';
+    case DIVERIFIKASI = 'diverifikasi';
+    case DIPROSES = 'diproses';
+    case SELESAI = 'selesai';
 }
