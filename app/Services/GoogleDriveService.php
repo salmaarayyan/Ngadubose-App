@@ -10,28 +10,57 @@ class GoogleDriveService
     /**
      * Mengunggah file ke Google Drive.
      * 
-     * @param UploadFile $file File yang diunggah dari request
+     * @param UploadedFile $file File yang diunggah dari request
      * @param string $folderName Nama subfolder tujuan di Google Drive (opsional)
-     * @return string|null Mengembalikan path/ID file jika berhasil, null jika gagal
+     * @return string|null Mengembalikan path file jika berhasil, null jika gagal
      */
     public function uploadFile(UploadedFile $file, string $folderName = 'lampiran_laporan')
     {
         try {
-            // Menggunakan disk 'google' yang sudah dikonfigurasi di config/filesystems.php
             $disk = Storage::disk('google');
 
-            // Generate nama file yang unik agar tidak bentrok
             $fileName = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+            
+            $filePath = $folderName . '/' . $fileName;
 
-            // Proses upload file ke Google Drive
-            $filePath = $file->storeAs($folderName, $fileName, 'google');
+            $fileContent = file_get_contents($file->getRealPath());
+
+            $disk->put($filePath, $fileContent);
 
             return $filePath;
+
         } catch (\Exception $e) {
-            // Tangkap error jika upload gagal (bisa dicatat ke log jika perlu)
             \Log::error('Gagal upload ke Google Drive: ' . $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Mengunggah banyak file ke Google Drive secara sekaligus.
+     * 
+     * @param array|mixed $files Daftar file dari request
+     * @param string $folderName Nama subfolder tujuan di Google Drive
+     * @return array Mengembalikan array berisi path file yang berhasil diunggah
+     */
+    public function uploadMultipleFiles($files, string $folderName = 'lampiran_laporan')
+    {
+        $uploadedPaths = [];
+
+        if (!is_array($files)) {
+            $files = [$files];
+        }
+
+        foreach ($files as $file) {
+            if ($file instanceof UploadedFile && $file->isValid()) {
+                $path = $this->uploadFile($file, $folderName);
+                
+                if ($path) {
+                    $uploadedPaths[] = $path;
+                }
+            }
+        }
+
+        return $uploadedPaths;
     }
 
     /**

@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.3",
         "google/apiclient": "^2.20",
+        "klytron/laravel-google-drive-filesystem": "^1.5",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
         "livewire/livewire": "^4.4"

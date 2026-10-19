@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "453d587e02c5b1af35667e3aef5f87a5",
+    "content-hash": "94269d249fcb577a832be5f68b17aca2",
     "packages": [
         {
             "name": "brick/math",
@@ -1317,6 +1317,76 @@
                 }
             ],
             "time": "2026-08-24T17:13:02+00:00"
+        },
+        {
+            "name": "klytron/laravel-google-drive-filesystem",
+            "version": "v1.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/klytron/laravel-google-drive-filesystem.git",
+                "reference": "eb2c48be6334da4411bc3be1da6d4597e69c0bd1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/klytron/laravel-google-drive-filesystem/zipball/eb2c48be6334da4411bc3be1da6d4597e69c0bd1",
+                "reference": "eb2c48be6334da4411bc3be1da6d4597e69c0bd1",
+                "shasum": ""
+            },
+            "require": {
+                "google/apiclient": "^2.15",
+                "illuminate/filesystem": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+                "league/flysystem": "^3.0",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
+                "phpunit/phpunit": "^10.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Klytron\\GoogleDriveFilesystem\\Providers\\GoogleDriveServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Klytron\\GoogleDriveFilesystem\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Michael K. Laweh",
+                    "email": "hi@klytron.com",
+                    "homepage": "https://www.klytron.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Google Drive filesystem adapter for Laravel (10, 11, 12, 13)",
+            "homepage": "https://www.klytron.com/projects/laravel-google-drive-filesystem",
+            "keywords": [
+                "filesystem",
+                "google-drive",
+                "laravel",
+                "storage"
+            ],
+            "support": {
+                "issues": "https://github.com/klytron/laravel-google-drive-filesystem/issues",
+                "source": "https://github.com/klytron/laravel-google-drive-filesystem"
+            },
+            "funding": [
+                {
+                    "url": "https://www.klytron.com/buy-me-a-coffee",
+                    "type": "custom"
+                }
+            ],
+            "time": "2026-10-01T08:37:29+00:00"
         },
         {
             "name": "laravel/framework",
