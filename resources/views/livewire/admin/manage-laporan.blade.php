@@ -63,7 +63,7 @@
                                     {{ str_replace('_', ' ', $ticket->jenis_pengaduan) }}
                                 </span>
                             </td>
-                            <!-- Dropdown Status di Tabel -->
+                            
                             <td class="py-4 px-6">
                                 <select wire:change="openStatusModal({{ $ticket->id }}, $event.target.value)" 
                                         class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1.5 border rounded-xl bg-slate-50 border-slate-200 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#002B5B]">
@@ -102,7 +102,6 @@
         </div>
     </div>
 
-    <!-- MODAL DETAIL LAPORAN (Termasuk Gambar Bukti) -->
     @if($isDetailOpen && $selectedTicket)
         <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
@@ -126,7 +125,7 @@
                         </div>
                         <div class="bg-slate-50 p-3 rounded-xl">
                             <span class="block text-[10px] font-bold text-slate-400 uppercase">Terlapor</span>
-                            <span class="font-bold text-slate-800">{{ $selectedTicket->nama_terlapor }}</span>
+                            <span class="font-bold text-slate-800">{{ $selectedTicket->nama_terlapor ?? '-' }}</span>
                         </div>
                     </div>
 
@@ -137,7 +136,7 @@
                         </div>
                         <div class="bg-slate-50 p-3 rounded-xl">
                             <span class="block text-[10px] font-bold text-slate-400 uppercase">Tanggal Kejadian</span>
-                            <span class="font-bold text-slate-800">{{ $selectedTicket->tanggal_kejadian }}</span>
+                            <span class="font-bold text-slate-800">{{ $selectedTicket->tanggal_kejadian ?? '-' }}</span>
                         </div>
                     </div>
 
@@ -151,18 +150,45 @@
                         <div class="bg-slate-50 p-3 rounded-xl whitespace-pre-line leading-relaxed">{{ $selectedTicket->uraian }}</div>
                     </div>
 
-                    <!-- Menampilkan Gambar Bukti Laporan -->
                     <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bukti Laporan (Gambar)</span>
-                        @if($selectedTicket->bukti_laporan)
-                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                                <a href="{{ asset('storage/' . $selectedTicket->bukti_laporan) }}" target="_blank" class="block">
-                                    <img src="{{ asset('storage/' . $selectedTicket->bukti_laporan) }}" alt="Bukti Laporan" class="w-full max-h-60 object-cover rounded-lg hover:opacity-90 transition">
-                                </a>
-                                <span class="text-[10px] text-slate-400 mt-1 block">Klik gambar untuk memperbesar</span>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bukti Laporan / Lampiran</span>
+                        @php
+                            $rawBukti = $selectedTicket->bukti_laporan;
+                            $driveFiles = [];
+
+                            if (is_array($rawBukti)) {
+                                $driveFiles = $rawBukti;
+                            } elseif (is_string($rawBukti)) {
+                                $decoded = json_decode($rawBukti, true);
+                                if (is_array($decoded)) {
+                                    $driveFiles = $decoded;
+                                } else {
+                                    $driveFiles = [$rawBukti];
+                                }
+                            }
+                        @endphp
+
+                        @if(!empty($driveFiles) && count($driveFiles) > 0)
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                @foreach($driveFiles as $fileUrl)
+                                    @if(!empty($fileUrl))
+                                        @php
+                                            $fileName = basename($fileUrl);
+                                            $targetUrl = filter_var($fileUrl, FILTER_VALIDATE_URL) ? $fileUrl : "https://drive.google.com/drive/search?q=" . urlencode($fileName);
+                                        @endphp
+
+                                        <a href="{{ $targetUrl }}" target="_blank" class="bg-slate-50 p-3 rounded-xl border border-slate-200 relative group flex flex-col items-center text-center hover:border-[#002B5B] hover:bg-blue-50/30 transition cursor-pointer">
+                                            <div class="w-full h-16 bg-slate-100 flex flex-col items-center justify-center rounded-lg text-center p-2 mb-1">
+                                                <i class="fas fa-file-lines text-[#002B5B] text-xl mb-1"></i>
+                                                <span class="text-[9px] font-bold text-slate-700 truncate max-w-full">{{ $fileName }}</span>
+                                            </div>
+                                            <span class="text-[9px] text-blue-600 font-semibold underline mt-1">Buka / Cari di Drive &rarr;</span>
+                                        </a>
+                                    @endif
+                                @endforeach
                             </div>
                         @else
-                            <div class="bg-slate-50 p-3 rounded-xl text-slate-400 italic">Tidak ada lampiran gambar bukti.</div>
+                            <div class="bg-slate-50 p-3 rounded-xl text-slate-400 italic">Tidak ada lampiran bukti.</div>
                         @endif
                     </div>
 
@@ -178,7 +204,6 @@
         </div>
     @endif
 
-    <!-- MODAL POPUP UNTUK MENGIRIM CATATAN ADMIN (SAAT UBAH STATUS) -->
     @if($isStatusModalOpen)
         <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden flex flex-col">
