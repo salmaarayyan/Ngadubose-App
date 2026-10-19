@@ -25,17 +25,26 @@ class TicketController extends Controller
     }
 
     public function storeReport(Request $request)
-    {
-        $request->validate([
-            'klasifikasi' => 'required',
-            'jenis_pengaduan' => 'required',
-            'judul_laporan' => 'required|string|max:255',
-            'uraian_kronologi' => 'required',
-            'nama_terlapor' => 'required',
-            'tanggal_kejadian' => 'required|date|before_or_equal:today',
-            'bukti_pelaporan' => 'nullable|array|max:5',
-            'bukti_pelaporan.*' => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
-        ]);
+    {   
+        $rules = [
+            'klasifikasi'      => 'required|in:Pengaduan,Aspirasi,Informasi / Saran',
+            'judul_laporan'    => 'required|string|max:255',
+            'uraian_kronologi' => 'required|string',
+        ];
+
+        if ($request->klasifikasi === 'Pengaduan') {
+            $rules['nama_terlapor']    = 'required|string|max:255';
+            $rules['jenis_pengaduan']  = 'required|string';
+            $rules['tanggal_kejadian'] = 'required|date';
+            $rules['bukti_pelaporan'] = 'nullable|array|max:5';
+            $rules['bukti_pelaporan.*'] = 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120'; 
+        } else {
+            $rules['nama_terlapor']    = 'nullable';
+            $rules['jenis_pengaduan']  = 'nullable';
+            $rules['tanggal_kejadian'] = 'nullable|date';
+        }
+
+        $validatedData = $request->validate($rules);
 
         $tahun = date('Y');
         do {
