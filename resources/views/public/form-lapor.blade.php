@@ -47,10 +47,13 @@
             <form action="{{ route('laporan.store') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
                 @csrf
 
+                <!-- Klasifikasi Layanan -->
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-3">Klasifikasi Layanan <span class="text-red-500">*</span></label>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <label class="border-2 {{ old('klasifikasi', 'Pengaduan') == 'Pengaduan' ? 'border-[#002B5B] bg-blue-50/50' : 'border-slate-200' }} rounded-xl p-4 flex items-start gap-3 cursor-pointer hover:border-[#002B5B] transition relative">
+                        
+                        <!-- Pilihan 1: Pengaduan -->
+                        <label class="klasifikasi-card border-2 rounded-xl p-4 flex items-start gap-3 cursor-pointer transition relative border-slate-200 has-[:checked]:border-[#002B5B] has-[:checked]:bg-blue-50/50">
                             <input type="radio" name="klasifikasi" value="Pengaduan" {{ old('klasifikasi', 'Pengaduan') == 'Pengaduan' ? 'checked' : '' }} class="mt-1 accent-[#002B5B] klasifikasi-radio">
                             <div>
                                 <span class="block text-sm font-bold text-slate-800">Pengaduan</span>
@@ -58,7 +61,8 @@
                             </div>
                         </label>
 
-                        <label class="border-2 {{ old('klasifikasi') == 'Aspirasi' ? 'border-[#002B5B] bg-blue-50/50' : 'border-slate-200' }} rounded-xl p-4 flex items-start gap-3 cursor-pointer hover:border-[#002B5B] transition relative">
+                        <!-- Pilihan 2: Aspirasi -->
+                        <label class="klasifikasi-card border-2 rounded-xl p-4 flex items-start gap-3 cursor-pointer transition relative border-slate-200 has-[:checked]:border-[#002B5B] has-[:checked]:bg-blue-50/50">
                             <input type="radio" name="klasifikasi" value="Aspirasi" {{ old('klasifikasi') == 'Aspirasi' ? 'checked' : '' }} class="mt-1 accent-[#002B5B] klasifikasi-radio">
                             <div>
                                 <span class="block text-sm font-bold text-slate-800">Aspirasi</span>
@@ -66,25 +70,28 @@
                             </div>
                         </label>
 
-                        <label class="border-2 {{ old('klasifikasi') == 'Informasi / Saran' ? 'border-[#002B5B] bg-blue-50/50' : 'border-slate-200' }} rounded-xl p-4 flex items-start gap-3 cursor-pointer hover:border-[#002B5B] transition relative">
+                        <!-- Pilihan 3: Informasi / Saran -->
+                        <label class="klasifikasi-card border-2 rounded-xl p-4 flex items-start gap-3 cursor-pointer transition relative border-slate-200 has-[:checked]:border-[#002B5B] has-[:checked]:bg-blue-50/50">
                             <input type="radio" name="klasifikasi" value="Informasi / Saran" {{ old('klasifikasi') == 'Informasi / Saran' ? 'checked' : '' }} class="mt-1 accent-[#002B5B] klasifikasi-radio">
                             <div>
                                 <span class="block text-sm font-bold text-slate-800">Informasi / Saran</span>
                                 <span class="block text-[11px] text-slate-500 leading-tight mt-0.5">Permintaan info umum atau saran perbaikan pelayanan publik.</span>
                             </div>
                         </label>
+
                     </div>
                 </div>
 
-                <!-- Input Judul Laporan Dipindah Keluar dari Grid Klasifikasi Agar Rapi -->
+                <!-- Judul Laporan -->
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Judul Laporan / Ringkasan Masalah <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1" id="label-judul">Judul Laporan / Ringkasan Masalah <span class="text-red-500">*</span></label>
                     <input type="text" name="judul_laporan" value="{{ old('judul_laporan') }}" required placeholder="Contoh: Dugaan penyimpangan anggaran atau saran fasilitas" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B]">
-                    <span class="text-[11px] text-gray-400 mt-1 block">Tuliskan judul atau inti ringkasan laporan Anda secara singkat.</span>
+                    <span class="text-[11px] text-gray-400 mt-1 block" id="sublabel-judul">Tuliskan judul atau inti ringkasan laporan Anda secara singkat.</span>
                 </div>
 
                 <hr class="border-slate-100">
 
+                <!-- Baris 1: Nama Pelapor & Nama Terlapor -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Pelapor</label>
@@ -97,6 +104,7 @@
                     </div>
                 </div>
 
+                <!-- Baris 2: Jenis Pengaduan & Tanggal Kejadian -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div id="field-jenis-pengaduan">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Jenis Pengaduan / Topik Laporan <span class="text-red-500">*</span></label>
@@ -109,20 +117,20 @@
                             <option value="lainnya" {{ old('jenis_pengaduan') == 'lainnya' ? 'selected' : '' }}>Lainnya / Masalah Umum</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal Kejadian <span class="text-red-500">*</span></label>
-                        <input type="date" name="tanggal_kejadian" value="{{ old('tanggal_kejadian') }}" max="{{ date('Y-m-d') }}" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B]">
+                    <div id="field-tanggal-kejadian">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1" id="label-tanggal">Tanggal Kejadian <span class="text-red-500" id="star-tanggal">*</span></label>
+                        <input type="date" name="tanggal_kejadian" id="input_tanggal" value="{{ old('tanggal_kejadian') }}" max="{{ date('Y-m-d') }}" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B]">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1" id="label-uraian">Uraian Kronologi Kejadian <span class="text-red-500">*</span></label>
-                    <textarea name="uraian_kronologi" rows="5" required placeholder="Ceritakan secara mendetail runtutan kejadian..." class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B] leading-relaxed">{{ old('uraian_kronologi') }}</textarea>
+                    <textarea name="uraian_kronologi" rows="5" required placeholder="Tuliskan uraian.." class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B] leading-relaxed">{{ old('uraian_kronologi') }}</textarea>
                 </div>
                 
-                <div>
+                <div id="field-bukti-pendukung">
                     <label class="block text-sm font-semibold text-slate-700 mb-2">
-                        Bukti Pendukung
+                        Bukti Pendukung <span class="text-xs text-gray-400 font-normal">(Opsional)</span>
                     </label>
 
                     <div class="border border-slate-200 rounded-xl p-5 bg-slate-50">
@@ -177,30 +185,70 @@
             const radioKlasifikasi = document.querySelectorAll('.klasifikasi-radio');
             const fieldTerlapor = document.getElementById('field-terlapor');
             const fieldJenisPengaduan = document.getElementById('field-jenis-pengaduan');
+            const fieldTanggalKejadian = document.getElementById('field-tanggal-kejadian');
+            const fieldBuktiPendukung = document.getElementById('field-bukti-pendukung'); // Tambahan variabel bukti pendukung
+            
             const inputTerlapor = document.getElementById('input_terlapor');
             const selectJenisPengaduan = document.getElementById('select_jenis_pengaduan');
+            
+            const labelJudul = document.getElementById('label-judul');
+            const sublabelJudul = document.getElementById('sublabel-judul');
             const labelUraian = document.getElementById('label-uraian');
+            
+            const inputTanggal = document.getElementById('input_tanggal');
+            const labelTanggal = document.getElementById('label-tanggal');
+            const starTanggal = document.getElementById('star-tanggal');
 
             function updateFormVisibility() {
-                const selectedValue = document.querySelector('.klasifikasi-radio:checked').value;
+                const checkedRadio = document.querySelector('.klasifikasi-radio:checked');
+                if (!checkedRadio) return;
+                
+                const selectedValue = checkedRadio.value;
 
                 if (selectedValue === 'Pengaduan') {
+                    // Tampilkan field khusus pengaduan
                     fieldTerlapor.style.display = 'block';
                     fieldJenisPengaduan.style.display = 'block';
+                    fieldTanggalKejadian.style.display = 'block';
+                    fieldBuktiPendukung.style.display = 'block'; // Tampilkan bukti pendukung
+                    
                     inputTerlapor.setAttribute('required', 'required');
                     selectJenisPengaduan.setAttribute('required', 'required');
+
+                    inputTanggal.setAttribute('required', 'required');
+                    labelTanggal.innerHTML = 'Tanggal Kejadian <span class="text-red-500" id="star-tanggal">*</span>';
+
+                    labelJudul.innerHTML = 'Judul Laporan / Ringkasan Masalah <span class="text-red-500">*</span>';
+                    sublabelJudul.innerText = 'Tuliskan judul atau inti ringkasan laporan Anda secara singkat.';
                     labelUraian.innerHTML = 'Uraian Kronologi Kejadian <span class="text-red-500">*</span>';
+                
                 } else if (selectedValue === 'Aspirasi') {
+                    // Sembunyikan field yang tidak relevan untuk aspirasi
                     fieldTerlapor.style.display = 'none';
                     fieldJenisPengaduan.style.display = 'none';
+                    fieldTanggalKejadian.style.display = 'none';
+                    fieldBuktiPendukung.style.display = 'none'; // Sembunyikan bukti pendukung
+
                     inputTerlapor.removeAttribute('required');
                     selectJenisPengaduan.removeAttribute('required');
+                    inputTanggal.removeAttribute('required');
+
+                    labelJudul.innerHTML = 'Judul Aspirasi / Gagasan <span class="text-red-500">*</span>';
+                    sublabelJudul.innerText = 'Tuliskan judul atau inti gagasan/ide yang ingin Anda sampaikan.';
                     labelUraian.innerHTML = 'Uraian Aspirasi atau Gagasan <span class="text-red-500">*</span>';
+                
                 } else {
                     fieldTerlapor.style.display = 'none';
                     fieldJenisPengaduan.style.display = 'none';
+                    fieldTanggalKejadian.style.display = 'none';
+                    fieldBuktiPendukung.style.display = 'none'; 
+
                     inputTerlapor.removeAttribute('required');
                     selectJenisPengaduan.removeAttribute('required');
+                    inputTanggal.removeAttribute('required');
+
+                    labelJudul.innerHTML = 'Judul Informasi / Saran <span class="text-red-500">*</span>';
+                    sublabelJudul.innerText = 'Tuliskan judul atau pokok informasi/saran yang ingin disampaikan.';
                     labelUraian.innerHTML = 'Uraian Informasi atau Saran <span class="text-red-500">*</span>';
                 }
             }
@@ -216,18 +264,20 @@
         const previewContainer = document.getElementById('preview-container');
         let selectedFiles = [];
 
-        input.addEventListener('change', function () {
-            const files = Array.from(this.files);
-            selectedFiles = selectedFiles.concat(files);
+        if (input) {
+            input.addEventListener('change', function () {
+                const files = Array.from(this.files);
+                selectedFiles = selectedFiles.concat(files);
 
-            if (selectedFiles.length > 5) {
-                alert('Maksimal 5 file yang dapat diunggah.');
-                selectedFiles = selectedFiles.slice(0, 5);
-            }
+                if (selectedFiles.length > 5) {
+                    alert('Maksimal 5 file yang dapat diunggah.');
+                    selectedFiles = selectedFiles.slice(0, 5);
+                }
 
-            renderPreview();
-            updateInputFiles();
-        });
+                renderPreview();
+                updateInputFiles();
+            });
+        }
 
         function renderPreview() {
             previewContainer.innerHTML = '';
@@ -273,6 +323,7 @@
         }
 
         function updateInputFiles() {
+            if (!input) return;
             const dataTransfer = new DataTransfer();
             selectedFiles.forEach(file => {
                 dataTransfer.items.add(file);
