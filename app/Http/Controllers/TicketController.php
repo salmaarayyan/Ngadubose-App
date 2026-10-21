@@ -99,7 +99,6 @@ class TicketController extends Controller
             'bukti_laporan' => $uploadedPaths,
         ]);
 
-        // DIPERBAIKI: Menggunakan 'id_ticket' sesuai struktur tabel database
         TicketProgress::create([
             'id_ticket' => $ticket->id,
             'status' => StatusLaporan::DITERIMA->value,
@@ -115,8 +114,7 @@ class TicketController extends Controller
                     . "▪️ *Tanggal Kejadian:* " . $request->tanggal_kejadian . "\n\n"
                     . "Silakan segera login ke Panel Dashboard Admin BPS Bantul untuk memeriksa berkas laporan. Terima kasih.";
 
-            $admins = User::where('is_admin', 1)
-                         ->whereNotNull('nomor_hp')
+            $admins = User::whereNotNull('nomor_hp')
                          ->where('nomor_hp', '!=', '')
                          ->get();
 
@@ -148,7 +146,6 @@ class TicketController extends Controller
             return view('public.lacak-status');
         }
 
-        // DIPERBAIKI: Menggunakan relasi 'ticketProgress' sesuai yang ada di Model Ticket
         $ticket = Ticket::with(['ticketProgress' => function($query) {
             $query->latest();
         }])->where('ticket_code', $ticketCode)->first();
