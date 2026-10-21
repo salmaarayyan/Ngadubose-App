@@ -30,6 +30,17 @@ class TicketController extends Controller
             'klasifikasi'      => 'required|in:Pengaduan,Aspirasi,Informasi / Saran',
             'judul_laporan'    => 'required|string|max:255',
             'uraian_kronologi' => 'required|string',
+            'g-recaptcha-response' => function ($attribute, $value, $fail) {
+                $response = \Illuminate\Support\Facades\Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                    'secret' => env('RECAPTCHA_SECRET_KEY'),
+                    'response' => $value,
+                    'remoteip' => request()->ip(),
+                ]);
+
+                if (!$response->json('success')) {
+                    $fail('Verifikasi reCAPTCHA gagal. Silakan centang kotak verifikasi bahwa Anda bukan robot.');
+                }
+            },
         ];
 
         if ($request->klasifikasi === 'Pengaduan') {
