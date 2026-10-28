@@ -15,7 +15,7 @@ class AdminMiddleware
             return $next($request);
         }
         auth()->logout();
-        return redirect('/admin/login')->withErrors([
+        return redirect()->route('auth.login')->withErrors([
             'login_error' => 'Silakan login sebagai administrator terlebih dahulu.'
         ]);
     }

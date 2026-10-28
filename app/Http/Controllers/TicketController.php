@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreReportRequest;
 use App\Models\Ticket;
 use App\Models\TicketProgress;
 use App\Models\User;
@@ -24,38 +25,10 @@ class TicketController extends Controller
         $this->googleDriveService = $googleDriveService;
     }
 
-    public function storeReport(Request $request)
-    {   
-        $rules = [
-            'klasifikasi'      => 'required|in:Pengaduan,Aspirasi,Informasi / Saran',
-            'judul_laporan'    => 'required|string|max:255',
-            'uraian_kronologi' => 'required|string',
-            'g-recaptcha-response' => function ($attribute, $value, $fail) {
-                $response = \Illuminate\Support\Facades\Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-                    'secret' => env('RECAPTCHA_SECRET_KEY'),
-                    'response' => $value,
-                    'remoteip' => request()->ip(),
-                ]);
-
-                if (!$response->json('success')) {
-                    $fail('Verifikasi reCAPTCHA gagal. Silakan centang kotak verifikasi bahwa Anda bukan robot.');
-                }
-            },
-        ];
-
-        if ($request->klasifikasi === 'Pengaduan') {
-            $rules['nama_terlapor']    = 'required|string|max:255';
-            $rules['jenis_pengaduan']  = 'required|string';
-            $rules['tanggal_kejadian'] = 'required|date';
-            $rules['bukti_pelaporan'] = 'nullable|array|max:5';
-            $rules['bukti_pelaporan.*'] = 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120'; 
-        } else {
-            $rules['nama_terlapor']    = 'nullable';
-            $rules['jenis_pengaduan']  = 'nullable';
-            $rules['tanggal_kejadian'] = 'nullable|date';
-        }
-
-        $validatedData = $request->validate($rules);
+    public function storeReport(StoreReportRequest $request)
+    {
+        $data = $request->validated();
+        $isPengaduan = $request->isPengaduan();
 
         $tahun = date('Y');
         do {
@@ -66,7 +39,8 @@ class TicketController extends Controller
         $uploadedPaths = [];
 
         try {
-            if ($request->hasFile('bukti_pelaporan')) {
+            // Bukti pendukung hanya diterima untuk klasifikasi Pengaduan.
+            if ($isPengaduan && $request->hasFile('bukti_pelaporan')) {
                 $uploadedPaths = $this->googleDriveService
                     ->uploadMultipleFiles(
                         $request->file('bukti_pelaporan'),
@@ -89,13 +63,13 @@ class TicketController extends Controller
 
         $ticket = Ticket::create([
             'ticket_code' => $ticketCode,
-            'klasifikasi' => $request->klasifikasi,
-            'judul_laporan' => $request->judul_laporan,
-            'nama_pelapor' => $request->nama_pelapor ?? SystemConfig::DEFAULT_PELAPOR->value, 
-            'jenis_pengaduan' => $request->jenis_pengaduan,
-            'uraian' => $request->uraian_kronologi,
-            'nama_terlapor' => $request->nama_terlapor,
-            'tanggal_kejadian' => $request->tanggal_kejadian,
+            'klasifikasi' => $data['klasifikasi'],
+            'judul_laporan' => $data['judul_laporan'],
+            'nama_pelapor' => $data['nama_pelapor'] ?? SystemConfig::DEFAULT_PELAPOR->value,
+            'jenis_pengaduan' => $isPengaduan ? $data['jenis_pengaduan'] : null,
+            'uraian' => $data['uraian_kronologi'],
+            'nama_terlapor' => $isPengaduan ? $data['nama_terlapor'] : null,
+            'tanggal_kejadian' => $isPengaduan ? $data['tanggal_kejadian'] : null,
             'bukti_laporan' => $uploadedPaths,
         ]);
 
@@ -109,9 +83,9 @@ class TicketController extends Controller
             $pesan_notifikasi = "🚨 *LAPORAN WBS BARU MASUK* 🚨\n\n"
                     . "Halo Admin NGADUBOSE, ada laporan pengaduan baru masuk dari Masyarakat (Publik).\n\n"
                     . "▪ *Kode Tiket:* " . $ticketCode . "\n"
-                    . "▪️ *Klasifikasi:* " . $request->klasifikasi . "\n"
-                    . "▪️ *Jenis Pengaduan:* " . ucfirst(str_replace('_', ' ', $request->jenis_pengaduan)) . "\n"
-                    . "▪️ *Tanggal Kejadian:* " . $request->tanggal_kejadian . "\n\n"
+                    . "▪️ *Klasifikasi:* " . $data['klasifikasi'] . "\n"
+                    . "▪️ *Jenis Pengaduan:* " . ($isPengaduan ? ucfirst(str_replace('_', ' ', $data['jenis_pengaduan'])) : '-') . "\n"
+                    . "▪️ *Tanggal Kejadian:* " . ($isPengaduan ? $data['tanggal_kejadian'] : '-') . "\n\n"
                     . "Silakan segera login ke Panel Dashboard Admin BPS Bantul untuk memeriksa berkas laporan. Terima kasih.";
 
             $admins = User::whereNotNull('nomor_hp')
@@ -140,13 +114,14 @@ class TicketController extends Controller
 
     public function lacakStatus(Request $request)
     {
-        $ticketCode = $request->input('kode_tiket');
+        $ticketCode = strtoupper(trim((string) $request->input('kode_tiket')));
 
         if (!$ticketCode) {
             return view('public.lacak-status');
         }
 
-        $ticket = Ticket::with(['ticketProgress' => function($query) {
+        // Kode tiket berformat WBS-TAHUN-XXXXX; input yang terlalu panjang langsung ditolak.
+        $ticket = strlen($ticketCode) > 20 ? null : Ticket::with(['ticketProgress' => function($query) {
             $query->latest();
         }])->where('ticket_code', $ticketCode)->first();
 

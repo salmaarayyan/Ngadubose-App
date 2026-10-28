@@ -4,7 +4,9 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Enums\StatusLaporan;
 use App\Models\Ticket;
+use Illuminate\Validation\Rule;
 use App\Models\TicketProgress;
 use Illuminate\Support\Facades\Auth;
 
@@ -53,7 +55,12 @@ class ManageLaporan extends Component
     public function saveStatusProgress()
     {
         $this->validate([
-            'catatanAdmin' => 'required|string|min:3',
+            'statusTicketId' => ['required', 'integer', 'exists:tickets,id'],
+            'newStatus'      => ['required', Rule::enum(StatusLaporan::class)],
+            'catatanAdmin'   => ['required', 'string', 'min:3', 'max:1000'],
+        ], [
+            'newStatus.enum' => 'Status laporan tidak valid.',
+            'catatanAdmin.max' => 'Catatan admin maksimal 1000 karakter.',
         ]);
 
         $ticket = Ticket::findOrFail($this->statusTicketId);
