@@ -6,11 +6,25 @@
             <p class="text-xs text-slate-400 mt-0.5">Kelola dan pantau seluruh laporan pengaduan yang masuk dari masyarakat.</p>
         </div>
 
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto flex-wrap">
             <select wire:model.live="statusFilter" class="bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#002B5B]">
                 <option value="">Semua Status</option>
                 @foreach(\App\Enums\StatusLaporan::cases() as $status)
                     <option value="{{ $status->value }}">{{ $status->value }}</option>
+                @endforeach
+            </select>
+
+            <select wire:model.live="jenisPengaduanFilter" class="bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#002B5B]">
+                <option value="">Semua Jenis Pengaduan</option>
+                @foreach(\App\Enums\JenisPengaduan::cases() as $jenis)
+                    <option value="{{ $jenis->value }}">{{ ucwords(str_replace('_', ' ', $jenis->value)) }}</option>
+                @endforeach
+            </select>
+
+            <select wire:model.live="yearFilter" class="bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#002B5B]">
+                <option value="">Semua Tahun</option>
+                @foreach($availableYears as $year)
+                    <option value="{{ $year }}">{{ $year }}</option>
                 @endforeach
             </select>
 
@@ -19,7 +33,7 @@
                     <i class="fas fa-search text-xs"></i>
                 </span>
                 <input type="text" wire:model.live.debounce.300ms="search" 
-                       class="w-full sm:w-64 pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#002B5B] focus:bg-white transition" 
+                       class="w-full sm:w-48 pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#002B5B] focus:bg-white transition" 
                        placeholder="Cari kode, judul, pelapor...">
             </div>
         </div>
@@ -63,7 +77,6 @@
                                     {{ str_replace('_', ' ', $ticket->jenis_pengaduan) }}
                                 </span>
                             </td>
-                            
                             <td class="py-4 px-6">
                                 <select wire:change="openStatusModal({{ $ticket->id }}, $event.target.value)" 
                                         class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1.5 border rounded-xl bg-slate-50 border-slate-200 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#002B5B]">
@@ -85,7 +98,7 @@
                     @empty
                         <tr>
                             <td colspan="6" class="py-8 text-center text-slate-400">
-                                @if($search || $statusFilter)
+                                @if($search || $statusFilter || $jenisPengaduanFilter || $yearFilter)
                                     Tidak ditemukan laporan yang sesuai dengan filter pencarian Anda.
                                 @else
                                     Belum ada data laporan pengaduan masuk.
@@ -105,7 +118,6 @@
     @if($isDetailOpen && $selectedTicket)
         <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
-                
                 <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
                     <div>
                         <h3 class="text-sm font-black text-slate-800">Detail Laporan: {{ $selectedTicket->ticket_code }}</h3>
@@ -117,7 +129,6 @@
                 </div>
 
                 <div class="p-6 space-y-4 overflow-y-auto text-xs text-slate-600 flex-1">
-                    
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-slate-50 p-3 rounded-xl">
                             <span class="block text-[10px] font-bold text-slate-400 uppercase">Pelapor</span>
@@ -191,7 +202,6 @@
                             <div class="bg-slate-50 p-3 rounded-xl text-slate-400 italic">Tidak ada lampiran bukti.</div>
                         @endif
                     </div>
-
                 </div>
 
                 <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end shrink-0">
@@ -199,7 +209,6 @@
                         Tutup
                     </button>
                 </div>
-
             </div>
         </div>
     @endif
@@ -209,7 +218,7 @@
             <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden flex flex-col">
                 <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                     <h3 class="text-sm font-black text-slate-800">Kirim Catatan Admin</h3>
-                    <button wire:click="$set('isStatusModalOpen', false)" class="text-slate-400 hover:text-slate-600">
+                    <button wire:click="$set('isStatusModalOpen', false)" class="text-slate-400 hover:text-slate-600 cursor-pointer">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -224,8 +233,8 @@
                     </div>
                 </div>
                 <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
-                    <button type="button" wire:click="$set('isStatusModalOpen', false)" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-bold rounded-xl">Batal</button>
-                    <button type="button" wire:click="saveStatusProgress" class="px-4 py-2 bg-[#002B5B] text-white text-xs font-bold rounded-xl hover:bg-opacity-90">Simpan Perubahan</button>
+                    <button type="button" wire:click="$set('isStatusModalOpen', false)" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer">Batal</button>
+                    <button type="button" wire:click="saveStatusProgress" class="px-4 py-2 bg-[#002B5B] text-white text-xs font-bold rounded-xl hover:bg-opacity-95 cursor-pointer">Simpan Perubahan</button>
                 </div>
             </div>
         </div>
