@@ -14,42 +14,34 @@ class ManageTicket extends Component
 
     public $search = '';
     public $statusFilter = '';
+    public $jenisPengaduanFilter = '';
+    public $yearFilter = '';
     
-    // Properti untuk Modal Detail Laporan
     public $isDetailOpen = false;
     public $selectedTicket = null;
 
-    // Properti untuk Modal Status & Catatan Admin
     public $isStatusModalOpen = false;
     public $statusTicketId = null;
     public $newStatus = null;
     public $catatanAdmin = '';
 
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
+    public function updatingSearch() { $this->resetPage(); }
+    public function updatingStatusFilter() { $this->resetPage(); }
+    public function updatingJenisPengaduanFilter() { $this->resetPage(); }
+    public function updatingYearFilter() { $this->resetPage(); }
 
-    public function updatingStatusFilter()
-    {
-        $this->resetPage();
-    }
-
-    // Fungsi menampilkan modal detail laporan
     public function showDetail($ticketId)
     {
         $this->selectedTicket = Ticket::findOrFail($ticketId);
         $this->isDetailOpen = true;
     }
 
-    // Fungsi menutup modal detail laporan
     public function closeDetail()
     {
         $this->isDetailOpen = false;
         $this->selectedTicket = null;
     }
 
-    // Fungsi untuk membuka modal catatan admin saat dropdown status diubah
     public function openStatusModal($ticketId, $status)
     {
         $this->statusTicketId = $ticketId;
@@ -58,26 +50,18 @@ class ManageTicket extends Component
         $this->isStatusModalOpen = true;
     }
 
-    // Fungsi untuk menyimpan perubahan status dan catatan admin ke database
     public function saveStatusProgress()
     {
         $this->validate([
             'catatanAdmin' => 'required|string|min:3',
-        ], [
-            'catatanAdmin.required' => 'Catatan admin wajib diisi.',
-            'catatanAdmin.min' => 'Catatan admin minimal 3 karakter.',
         ]);
 
-        // 1. Update status di tabel utama tickets
         $ticket = Ticket::findOrFail($this->statusTicketId);
-        $ticket->update([
-            'status' => $this->newStatus
-        ]);
+        $ticket->update(['status' => $this->newStatus]);
 
-        // 2. Simpan riwayat ke tabel ticket_progres
         TicketProgress::create([
             'id_ticket' => $ticket->id,
-            'id_user' => Auth::id(), // Admin yang sedang login
+            'id_user' => Auth::id(),
             'status' => $this->newStatus,
             'catatan_admin' => $this->catatanAdmin,
         ]);
@@ -88,7 +72,17 @@ class ManageTicket extends Component
 
     public function render()
     {
-        $tickets = Ticket::query()
+        // 1. Query dasar untuk filter tahun & jenis pengaduan (berlaku untuk diagram/statistik)
+        $baseQuery = Ticket::query()
+            ->when($this->yearFilter, function ($query) {
+                $query->whereYear('created_at', $this->yearFilter);
+            })
+            ->when($this->jenisPengaduanFilter, function ($query) {
+                $query->where('jenis_pengaduan', $this->jenisPengaduanFilter);
+            });
+
+        // 2. Query untuk tabel (ditambah pencarian dan status)
+        $tickets = (clone $baseQuery)
             ->when($this->search, function ($query) {
                 $query->where('ticket_code', 'like', '%' . $this->search . '%')
                       ->orWhere('judul_laporan', 'like', '%' . $this->search . '%')
@@ -100,8 +94,34 @@ class ManageTicket extends Component
             ->latest()
             ->paginate(10);
 
+        // 3. Hitung data untuk Diagram Status Penanganan (Proporsi Status)
+        $statusCounts = [
+            'Diterima' => (clone $baseQuery)->where('status', 'Diterima')->count(),
+            'Diverifikasi' => (clone $baseQuery)->where('status', 'Diverifikasi')->count(),
+            'Diproses' => (clone $baseQuery)->where('status', 'Diproses')->count(),
+            'Selesai' => (clone $baseQuery)->where('status', 'Selesai')->count(),
+        ];
+
+        // 4. Hitung data untuk Diagram Kategori Pelanggaran (Jumlah Kategori)
+        $kategoriCounts = [
+            'gratifikasi' => (clone $baseQuery)->where('jenis_pengaduan', 'gratifikasi')->count(),
+            'benturan_kepentingan' => (clone $baseQuery)->where('jenis_pengaduan', 'benturan_kepentingan')->count(),
+            'korupsi' => (clone $baseQuery)->where('jenis_pengaduan', 'korupsi')->count(),
+            'pelanggaran_aturan' => (clone $baseQuery)->where('jenis_pengaduan', 'pelanggaran_aturan')->count(),
+            'lainnya' => (clone $baseQuery)->where('jenis_pengaduan', 'lainnya')->count(),
+        ];
+
+        // Ambil daftar tahun unik untuk opsi select filter
+        $availableYears = Ticket::selectRaw('YEAR(created_at) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
         return view('livewire.admin.manage-laporan', [
-            'tickets' => $tickets
+            'tickets' => $tickets,
+            'availableYears' => $availableYears,
+            'statusCounts' => $statusCounts,       // Kirim data status ke view
+            'kategoriCounts' => $kategoriCounts   // Kirim data kategori ke view
         ])->layout('layouts.admin');
     }
 }
