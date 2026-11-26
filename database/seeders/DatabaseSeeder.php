@@ -5,21 +5,32 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use RuntimeException;
 
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
     /**
-     * Seed the application's database.
+     * Data awal minimal: 1 akun admin.
+     * Password diambil dari SEED_DEFAULT_PASSWORD di .env (tidak di-hardcode).
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $password = env('SEED_DEFAULT_PASSWORD');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (blank($password)) {
+            throw new RuntimeException('SEED_DEFAULT_PASSWORD belum diisi di file .env.');
+        }
+
+        User::updateOrCreate(
+            ['email' => 'admin@bpsbantul.com'],
+            [
+                'nama' => 'Admin BPS',
+                // Diisi admin sendiri lewat menu Manajemen User.
+                'nomor_hp' => null,
+                'password' => $password,
+            ],
+        );
     }
 }
