@@ -65,16 +65,6 @@
                              class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-1.5 border border-slate-100 z-50"
                              style="display: none;">
                             
-                            <a href="{{ url('/admin/profile') }}" class="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-                                <i class="fas fa-user w-5 text-slate-400 mr-2"></i> Profil Saya
-                            </a>
-                            
-                            <a href="{{ url('/admin/settings') }}" class="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-                                <i class="fas fa-cog w-5 text-slate-400 mr-2"></i> Pengaturan
-                            </a>
-                            
-                            <div class="my-1 border-t border-slate-100"></div>
-                            
                             <form action="{{ url('/admin/logout') }}" method="POST">
                                 @csrf
                                 <button type="submit" class="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer">

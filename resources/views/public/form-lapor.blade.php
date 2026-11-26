@@ -81,7 +81,7 @@
 
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1" id="label-judul">Judul Laporan / Ringkasan Masalah <span class="text-red-500">*</span></label>
-                    <input type="text" name="judul_laporan" value="{{ old('judul_laporan') }}" required placeholder="Contoh: Dugaan penyimpangan anggaran atau saran fasilitas" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B]">
+                    <input type="text" name="judul_laporan" value="{{ old('judul_laporan') }}" required maxlength="255" placeholder="Contoh: Dugaan penyimpangan anggaran atau saran fasilitas" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B]">
                     <span class="text-[11px] text-gray-400 mt-1 block" id="sublabel-judul">Tuliskan judul atau inti ringkasan laporan Anda secara singkat.</span>
                 </div>
 
@@ -90,12 +90,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Pelapor</label>
-                        <input type="text" name="nama_pelapor" value="{{ old('nama_pelapor') }}" placeholder="Kosongkan jika ingin Anonim" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B]">
+                        <input type="text" name="nama_pelapor" value="{{ old('nama_pelapor') }}" maxlength="100" placeholder="Kosongkan jika ingin Anonim" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B]">
                         <span class="text-[11px] text-gray-400 mt-1 block">Identitas Anda dijamin aman & rahasia 100% oleh sistem.</span>
                     </div>
                     <div id="field-terlapor">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Terlapor / Oknum <span class="text-red-500">*</span></label>
-                        <input type="text" name="nama_terlapor" id="input_terlapor" value="{{ old('nama_terlapor') }}" placeholder="Nama pegawai BPS yang dilaporkan" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B]">
+                        <input type="text" name="nama_terlapor" id="input_terlapor" value="{{ old('nama_terlapor') }}" maxlength="255" placeholder="Nama pegawai BPS yang dilaporkan" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B]">
                     </div>
                 </div>
 
@@ -119,7 +119,7 @@
 
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1" id="label-uraian">Uraian Kronologi Kejadian <span class="text-red-500">*</span></label>
-                    <textarea name="uraian_kronologi" rows="5" required placeholder="Tuliskan uraian.." class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B] leading-relaxed">{{ old('uraian_kronologi') }}</textarea>
+                    <textarea name="uraian_kronologi" rows="5" required maxlength="5000" placeholder="Tuliskan uraian.." class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#002B5B] leading-relaxed">{{ old('uraian_kronologi') }}</textarea>
                 </div>
                 
                 <div id="field-bukti-pendukung">
@@ -142,13 +142,13 @@
                         <div id="preview-container" class="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3"></div>
 
                         <p class="text-xs text-gray-500 mt-2">
-                            Maksimal 5 MB (JPG, JPEG, PNG, PDF)
+                            Maksimal 5 file, masing-masing 5 MB (JPG, JPEG, PNG, PDF)
                         </p>
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
+                    <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
                     @error('g-recaptcha-response')
                         <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span>
                     @enderror
@@ -253,7 +253,19 @@
 
         if (input) {
             input.addEventListener('change', function () {
-                const files = Array.from(this.files);
+                const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                const maxSize = 5 * 1024 * 1024;
+                const files = Array.from(this.files).filter(file => {
+                    if (!allowedTypes.includes(file.type)) {
+                        alert(`File "${file.name}" tidak didukung. Gunakan JPG, JPEG, PNG, atau PDF.`);
+                        return false;
+                    }
+                    if (file.size > maxSize) {
+                        alert(`File "${file.name}" melebihi 5 MB.`);
+                        return false;
+                    }
+                    return true;
+                });
                 selectedFiles = selectedFiles.concat(files);
 
                 if (selectedFiles.length > 5) {
@@ -278,7 +290,7 @@
                         previewContent = `
                             <div class="w-full h-24 bg-red-50 flex flex-col items-center justify-center border rounded-lg">
                                 <i class="fas fa-file-pdf text-red-500 text-2xl"></i>
-                                <span class="text-[10px] text-slate-600 mt-1 px-1 truncate max-w-full">${file.name}</span>
+                                <span class="text-[10px] text-slate-600 mt-1 px-1 truncate max-w-full">${escapeHtml(file.name)}</span>
                             </div>
                         `;
                     } else {
@@ -301,6 +313,12 @@
 
                 reader.readAsDataURL(file);
             });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function removeFile(index) {

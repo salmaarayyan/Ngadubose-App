@@ -22,9 +22,13 @@ Route::get('/google-drive/callback', [
 
 Route::get('/', Home::class)->name('home');
 Route::get('/form-lapor', [TicketController::class, 'create'])->name('laporan.form'); 
-Route::post('/store-laporan', [TicketController::class, 'storeReport'])->name('laporan.store');
+Route::post('/store-laporan', [TicketController::class, 'storeReport'])
+    ->middleware('throttle:5,1')
+    ->name('laporan.store');
 Route::get('/laporan-sukses', [TicketController::class, 'sukses'])->name('laporan.sukses');
-Route::get('/lacak-status', [TicketController::class, 'lacakStatus'])->name('lacak.status');
+Route::get('/lacak-status', [TicketController::class, 'lacakStatus'])
+    ->middleware('throttle:20,1')
+    ->name('lacak.status');
 
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [AuthController::class, 'showLoginForm'])->name('auth.login');

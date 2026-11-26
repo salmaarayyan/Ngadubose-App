@@ -228,7 +228,7 @@
                     </p>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Catatan Admin</label>
-                        <textarea wire:model="catatanAdmin" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-1 focus:ring-[#002B5B]" placeholder="Tuliskan catatan progres penanganan..."></textarea>
+                        <textarea wire:model="catatanAdmin" rows="4" maxlength="1000" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-1 focus:ring-[#002B5B]" placeholder="Tuliskan catatan progres penanganan..."></textarea>
                         @error('catatanAdmin') <span class="text-red-500 text-[10px] mt-1 block">{{ $message }}</span> @enderror
                     </div>
                 </div>
